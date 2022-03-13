@@ -47,48 +47,22 @@ typedef struct {
 	}
 } EdgeComparator;
 
-class Particle {
-private:
-	size_t i;
-	vec3 velocity;
-	vec3 force;
-	vec3 mass;
-};
-
-class Spring {
-private:
-	size_t i;
-	size_t j;
-	float stiffness;
-	float damping;
-public:
-
-};
-
 class Object {
 private:
 	vector<vec3> vertices;
 	vector<vec3> normals;
 	vector<vec3> estimate;
-
-	vector<Particle> particles;
-	vector<Spring> springs;
-
 	vector<Triangle> triangles;
 	set<Edge, EdgeComparator> edges;
 	map<Edge, vector<Triangle>, EdgeComparator> adjacents;
 	void updateEdges();
 public:
 	Object();
-	Object(vector<vec3>, vector<vec3>, vector<Triangle>, float particleMass);
+	Object(vector<vec3>, vector<vec3>, vector<Triangle>);
 	vector<vec3>* getVertices();
 	vector<vec3>* getNormals();
 	vector<vec3>* getEstimate();
-
-	vector<vec3>* getVelocities();
-	vector<float>* getMasses();
 	vector<Triangle>* getTriangles();
-
 	set<Edge, EdgeComparator>* getEdges();
 	map<Edge, vector<Triangle>, EdgeComparator>* getAdjacentTriangles();
 	size_t getVerticesCount();
@@ -106,10 +80,26 @@ typedef struct {
 	GLuint shader;
 } OpenGLObjectInformation;
 
+typedef struct Particle {
+	size_t i;
+	vec3 velocity;
+	vec3 force;
+	vec3 mass;
+};
+
+typedef struct Spring {
+	size_t i;
+	size_t j;
+	float stiffness;
+	float damping;
+};
+
 class Entity {
 private:
 	Object original;
 	Object actual;
+	vector<Particle> particles;
+	vector<Spring> springs;
 	vector<vec3>* vertexBuffer;
 	vector<vec3>* normalBuffer;
 	mat4 model;

@@ -39,7 +39,7 @@ Object ObjectProvider::get(string path) {
 		}
 	}
 
-	return Object(vertices, normals, triangles, 1.0f);
+	return Object(vertices, normals, triangles);
 }
 
 
