@@ -27,6 +27,7 @@ typedef struct {
 typedef struct {
 	float gravityModifier;
 	float windModifier;
+	glm::vec3 windDirection;
 	int iterations;
 	float stiffness;
 	float bendability;

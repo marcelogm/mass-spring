@@ -57,7 +57,7 @@ add_library(mass-spring
 			"src/gui/CommandService.cpp"
 			"src/gui/CommandStrategy.cpp" 
 			"src/simulation/Simulator.cpp"
-			"src/simulation/ExternalForce.cpp" "src/entity/Particle.cpp")
+			"src/simulation/ExternalForce.cpp" )
 			
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -65,7 +65,7 @@ if (OPENMP_FOUND)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-add_executable(main WIN32 src/main.cpp ${COMMON_HEADERS} "src/entity/Particle.cpp")
+add_executable(main WIN32 src/main.cpp ${COMMON_HEADERS} )
 target_link_libraries(main ${COMMON_LIBS})
 
 include_directories(include)

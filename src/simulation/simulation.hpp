@@ -7,7 +7,7 @@ class ExternalForce {
 private:
 	const float ACCELERATION = 9.80665f;
 public:
-	void apply(vector<Entity*>* entities, float delta_t);
+	void apply(Entity* entity, float delta_t);
 };
 
 class Frametime {
@@ -36,6 +36,7 @@ private:
 	size_t iterations = 25;
 public:
 	void update(Scene* scene);
+	void updateEntity(Entity* entity, const float timestep, const float damping);
 	void timeIntegration(Entity* entity, const float delta_t);
 	Simulator();
 };

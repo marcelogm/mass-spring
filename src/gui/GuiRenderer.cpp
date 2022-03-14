@@ -19,12 +19,10 @@ void GuiRenderer::render() {
 
 	ImGui::Begin("Simulation", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::SliderFloat("Gravity Modifier", &config->getSimulationParams()->gravityModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat3("Wind Direction", value_ptr(config->getSimulationParams()->windDirection), -1, 1, "%.0f", ImGuiSliderFlags_None);
 	ImGui::SliderFloat("Wind Modifier", &config->getSimulationParams()->windModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
-	ImGui::SliderInt("Solver Iterations", &config->getSimulationParams()->iterations, 1, 20, "%d", ImGuiSelectableFlags_None);
-	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.00001f, 0.1f, "%.5f", ImGuiSelectableFlags_None);
-	ImGui::SliderInt("Substeps", &config->getSimulationParams()->substeps, 1, 20, "%d", ImGuiSelectableFlags_None);
-	ImGui::SliderFloat("k (distance constraint)", &config->getSimulationParams()->stiffness, 0.0001, 0.30, "%.5f", ImGuiSelectableFlags_None);
-	ImGui::SliderFloat("k (bend constraint)", &config->getSimulationParams()->bendability, 0.0001, 0.30, "%.5f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.000001f, 0.100f, "%.5f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Stiffness", &config->getSimulationParams()->stiffness, 0.0001, 0.30, "%.5f", ImGuiSelectableFlags_None);
 	
 	ImGui::End();
 

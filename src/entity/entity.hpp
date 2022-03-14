@@ -13,6 +13,7 @@
 #include <LoadShaders.h>
 #include <algorithm>
 #include "../camera/camera.hpp"
+#include <functional>
 
 using std::string;
 using glm::vec3;
@@ -84,38 +85,50 @@ typedef struct Particle {
 	size_t i;
 	vec3 velocity;
 	vec3 force;
-	vec3 mass;
+	float mass;
 };
 
 typedef struct Spring {
 	size_t i;
 	size_t j;
+	float restLength;
+};
+
+typedef struct SimulationProperties {
+	bool gravity;
+	bool wind;
+	float mass;
 	float stiffness;
 	float damping;
+	bool isStatic;
 };
 
 class Entity {
+public:
+	using SimulationPorpertiesProvider = std::function<SimulationProperties()>;
+	// TODO: oh god, what a mess, please refactor to a builder pattern
+	Entity(Object object, vector<ShaderInfo> shaders, vector<int> fixedParticles, vec4 color, mat4 model, SimulationPorpertiesProvider provider);
+	OpenGLObjectInformation getOpenGLInformation();
+	Object* getObject();
+	vector<Particle>* getParticles();
+	vector<Spring>* getSprings();
+	vector<int> getFixed();
+	mat4* getModel();
+	vec4* getColor();
+	void update();
+	vector<vec3>* getRenderedVertices();
+	vector<vec3>* getRenderedNormals();
+	SimulationProperties getSimulationProperties();
 private:
 	Object original;
 	Object actual;
-	vector<Particle> particles;
-	vector<Spring> springs;
+	vector<int> fixedParticles;
+	vector<Particle>* particles;
+	vector<Spring>* springs;
 	vector<vec3>* vertexBuffer;
 	vector<vec3>* normalBuffer;
 	mat4 model;
 	vec4 color;
-	bool gravity;
-	bool isStatic;
 	OpenGLObjectInformation info;
-public:
-	Entity(Object object, vector<ShaderInfo> shaders, vec4 color, mat4 model, bool gravity, float mass, bool isStatic);
-	OpenGLObjectInformation getOpenGLInformation();
-	Object* getObject();
-	mat4* getModel();
-	vec4* getColor();
-	bool isAffectedByGravity();
-	bool hasCollision();
-	void update();
-	vector<vec3>* getRenderedVertices();
-	vector<vec3>* getRenderedNormals();
+	SimulationPorpertiesProvider provider;
 };

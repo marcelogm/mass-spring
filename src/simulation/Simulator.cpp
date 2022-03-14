@@ -2,17 +2,53 @@
 
 void Simulator::update(Scene* scene) {
 	const auto params = Configuration::getInstance()->getSimulationParams();
-	const auto iterations = params->iterations;
-	const auto delta_t = params->step / params->substeps;
+	const auto timestep = params->step;
 	auto entities = scene->getEntities();
 
-	this->externalForces->apply(&scene->getEntities(), delta_t);
+	for (auto entity : entities) {
+		if (!entity->getSimulationProperties().isStatic) {
+			this->updateEntity(entity, timestep, 0.99f);
+		}
+	}
 
-	// integrate
-	for (size_t step = 0; step < params->substeps; step++) {
-		auto entities = scene->getEntities();
-		for (int i = 0; i < entities.size(); i++) {
-			this->timeIntegration(entities.at(i), delta_t);
+
+}
+
+void Simulator::updateEntity(Entity* entity, const float timestep, const float damping) {
+	auto particles = entity->getParticles();
+	auto object = entity->getObject();
+	auto vertices = object->getVertices();
+	auto fixed = entity->getFixed();
+
+	// update forces
+	for (auto &spring: *entity->getSprings()) {
+		auto p1 = &particles->at(spring.i);
+		auto p2 = &particles->at(spring.j);
+		auto actualSpringVector = vertices->at(p1->i) - vertices->at(p2->i);
+		auto actualLength = glm::length(actualSpringVector);
+		auto distance = actualLength - spring.restLength;
+		
+		auto h = -entity->getSimulationProperties().stiffness * distance;
+		auto force = actualSpringVector * h;
+
+		p1->force += force;
+		p2->force -= force;
+	}
+
+	// apply external forces
+
+	// time integration
+	for (auto i = 0; i < particles->size(); i++) {
+		if (std::find(fixed.begin(), fixed.end(), i) == fixed.end()) {
+			auto particle = &particles->at(i);
+
+			externalForces->apply(entity, timestep);
+
+			particle->velocity = particle->velocity + (particle->force / (particle->mass * timestep));
+			particle->velocity *= damping;
+
+			vertices->at(particle->i) += (particle->velocity * timestep);
+			particle->force = vec3();
 		}
 	}
 }

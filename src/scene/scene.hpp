@@ -35,5 +35,5 @@ public:
 class ClothSceneFactory {
 public:
 	Scene* build();
-	Entity* getDebugBox(vec3 position, float scale, vector<ShaderInfo> shaders);
+	Entity* getDebugBox(vec3 position, float scale, vector<ShaderInfo> shaders, Entity::SimulationPorpertiesProvider staticObjectProvider);
 };
