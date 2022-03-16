@@ -4,6 +4,11 @@
 using glm::vec4;
 
 typedef struct {
+	bool broadPhase;
+	glm::vec3 debugPosition;
+} Debug;
+
+typedef struct {
 	float width;
 	float height;
 } ViewportDimension;
@@ -44,10 +49,12 @@ private:
 	ViewportDimension viewport;
 	SimulationParams params;
 	OpenGLConfiguration openGL;
+	Debug debug;
 public:
 	static Configuration* getInstance();
 	ViewportDimension* getViewport();
 	LightConfiguration* getLight();
 	SimulationParams* getSimulationParams();
 	OpenGLConfiguration* getOpenGLConfiguration();
+	Debug* getDebug();
 };

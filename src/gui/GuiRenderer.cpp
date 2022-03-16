@@ -21,8 +21,13 @@ void GuiRenderer::render() {
 	ImGui::SliderFloat("Gravity Modifier", &config->getSimulationParams()->gravityModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
 	ImGui::SliderFloat3("Wind Direction", value_ptr(config->getSimulationParams()->windDirection), -1, 1, "%.0f", ImGuiSliderFlags_None);
 	ImGui::SliderFloat("Wind Modifier", &config->getSimulationParams()->windModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
-	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.000001f, 0.100f, "%.5f", ImGuiSelectableFlags_None);
-	ImGui::SliderFloat("Stiffness", &config->getSimulationParams()->stiffness, 0.0001, 0.30, "%.5f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.0000001f, 0.0001f, "%.8f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Stiffness", &config->getSimulationParams()->stiffness, 0.000001, 1.0, "%.8f", ImGuiSelectableFlags_None);
+
+	ImGui::Text("Broad Phase: %d", config->getDebug()->broadPhase);
+	ImGui::SliderFloat("Sphere position X", &config->getDebug()->debugPosition.x, -2, 2, "%.8f", ImGuiSliderFlags_None);
+	ImGui::SliderFloat("Sphere position Y", &config->getDebug()->debugPosition.y, -2, 2, "%.8f", ImGuiSliderFlags_None);
+	ImGui::SliderFloat("Sphere position Z", &config->getDebug()->debugPosition.z, -2, 2, "%.8f", ImGuiSliderFlags_None);
 	
 	ImGui::End();
 

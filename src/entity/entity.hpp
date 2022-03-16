@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "../camera/camera.hpp"
 #include <functional>
+#include "collision/collision.hpp"
 
 using std::string;
 using glm::vec3;
@@ -61,6 +62,7 @@ public:
 	Object();
 	Object(vector<vec3>, vector<vec3>, vector<Triangle>);
 	vector<vec3>* getVertices();
+	void setVertices(vector<vec3> vertices);
 	vector<vec3>* getNormals();
 	vector<vec3>* getEstimate();
 	vector<Triangle>* getTriangles();
@@ -103,22 +105,31 @@ typedef struct SimulationProperties {
 	bool isStatic;
 };
 
+
 class Entity {
 public:
 	using SimulationPorpertiesProvider = std::function<SimulationProperties()>;
-	// TODO: oh god, what a mess, please refactor to a builder pattern
-	Entity(Object object, vector<ShaderInfo> shaders, vector<int> fixedParticles, vec4 color, mat4 model, SimulationPorpertiesProvider provider);
+	using CollideableProvider = std::function<vector<Collideable*>*(Object*)>;
+
+	// TODO: oh god, what a mess, please refactor to a builder 
+	Entity(Object, vector<ShaderInfo>, vector<int>, vec4, mat4,
+		SimulationPorpertiesProvider, CollideableProvider);
+	Entity(Object, vec4, mat4);
+	Entity(Object, vec4);
+
 	OpenGLObjectInformation getOpenGLInformation();
 	Object* getObject();
 	vector<Particle>* getParticles();
 	vector<Spring>* getSprings();
 	vector<int> getFixed();
-	mat4* getModel();
 	vec4* getColor();
 	void update();
+	void updateModel(mat4 model);
 	vector<vec3>* getRenderedVertices();
 	vector<vec3>* getRenderedNormals();
 	SimulationProperties getSimulationProperties();
+	vector<Entity>* getCollisionEntities();
+	vector<Collideable*>* getCollideables();
 private:
 	Object original;
 	Object actual;
@@ -127,8 +138,22 @@ private:
 	vector<Spring>* springs;
 	vector<vec3>* vertexBuffer;
 	vector<vec3>* normalBuffer;
-	mat4 model;
+	vector<Collideable*>* collideables;
+	vector<Entity>* collisionDebug;
 	vec4 color;
 	OpenGLObjectInformation info;
-	SimulationPorpertiesProvider provider;
+	SimulationPorpertiesProvider propertiesProvider;
 };
+
+class DebugEntityUtils {
+public:
+	static Entity getDebugBoxEntityWith(vec3 min, vec3 max);
+	static Entity getDebugBoxEntityWith(vec3 pos, float radius);
+	static vector<vec3> getDebugBoxVerticesFromSphere(vec3 pos, float radius);
+	static vector<vec3> getDebugBoxVertices(vec3 min, vec3 max);
+};
+
+extern vector<ShaderInfo> DEFAULT_SHADER;
+extern Entity::CollideableProvider NO_COLLISION;
+extern Entity::SimulationPorpertiesProvider DEFAULT_PROPERTIES;
+extern Entity::CollideableProvider MIN_MAX_BOUDING_BOX;

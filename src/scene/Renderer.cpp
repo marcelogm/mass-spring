@@ -29,7 +29,6 @@ void Renderer::prepare() {
 
 void Renderer::render(Entity* entity, Camera* camera, LightConfiguration* ligth) {
     const auto view = camera->getView();
-    const auto model = *entity->getModel();
     const auto color = *entity->getColor();
     const auto info = entity->getOpenGLInformation();
 
@@ -40,7 +39,6 @@ void Renderer::render(Entity* entity, Camera* camera, LightConfiguration* ligth)
     glBufferData(GL_ARRAY_BUFFER, entity->getRenderedNormals()->size() * sizeof(vec3), entity->getRenderedNormals()->data(), GL_STATIC_DRAW);
 
     glUseProgram(info.shader);
-    glUniformMatrix4fv(glGetUniformLocation(info.shader, "model"), 1, GL_FALSE, value_ptr(model));
     glUniformMatrix4fv(glGetUniformLocation(info.shader, "view"), 1, GL_FALSE, value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(info.shader, "projection"), 1, GL_FALSE, value_ptr(this->projection));
     glUniform4f(glGetUniformLocation(info.shader, "objectColor"), color.r, color.g, color.b, color.a);

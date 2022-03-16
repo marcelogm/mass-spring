@@ -1,5 +1,6 @@
 ﻿#include "main.hpp"
 
+#define NOMINMAX
 using namespace std;
 
 int CALLBACK WinMain(

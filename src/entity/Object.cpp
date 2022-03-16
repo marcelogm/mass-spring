@@ -39,6 +39,11 @@ vector<vec3>* Object::getVertices() {
 	return &vertices;
 }
 
+void Object::setVertices(vector<vec3> vertices) {
+	this->vertices = vertices;
+	this->updateEdges();
+}
+
 vector<vec3>* Object::getNormals() {
 	return &normals;
 }

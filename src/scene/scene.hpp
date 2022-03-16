@@ -22,11 +22,14 @@ public:
 
 class Scene {
 private:
+	using DebugModelProvider = std::function<mat4()>;
 	vector<Entity*> entities;
+	Entity* debug;
 	Renderer* renderer;
 	Camera* camera;
+	DebugModelProvider provider;
 public:
-	Scene(vector<Entity*> entities, Camera* camera);
+	Scene(vector<Entity*> entities, Entity* debug, DebugModelProvider provider, Camera* camera);
 	void render();
 	Camera* getCamera();
 	vector<Entity*> getEntities();
@@ -35,5 +38,5 @@ public:
 class ClothSceneFactory {
 public:
 	Scene* build();
-	Entity* getDebugBox(vec3 position, float scale, vector<ShaderInfo> shaders, Entity::SimulationPorpertiesProvider staticObjectProvider);
+	Entity* getSphere(vec3 position, float scale);
 };

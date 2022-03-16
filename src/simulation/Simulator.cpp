@@ -11,7 +11,27 @@ void Simulator::update(Scene* scene) {
 		}
 	}
 
+	vector<Collideable*> pool;
 
+	for (auto entity : entities) {
+		// TODO: verificar se é colidivel
+		auto collisions = entity->getCollideables();
+		if (collisions->size() > 0) {
+			pool.insert(std::end(pool), std::begin(*collisions), std::end(*collisions));
+		}
+	}
+
+	const auto debug = Configuration::getInstance()->getDebug();
+	debug->broadPhase = false;
+	for (size_t i = 0; i < pool.size(); i++) {
+		for (size_t j = i; j < pool.size(); j++) {
+			if (i != j) {
+				if (CollisionChecker().isColliding(pool.at(j), pool.at(i))) {
+					debug->broadPhase = true;
+				};
+			}
+		}
+	}
 }
 
 void Simulator::updateEntity(Entity* entity, const float timestep, const float damping) {
