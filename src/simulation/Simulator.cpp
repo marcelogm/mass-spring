@@ -73,7 +73,7 @@ void Simulator::penalize(std::map<Collideable*, Entity*>::iterator x, std::map<C
 		auto direction = glm::normalize(D - P) * (sphere->getRadius() - restriction);
 		auto contact = P + direction;
 
-		particle->velocity = vec3();
+		particle->velocity *= 0.5;
 		vec3 force = this->calculateForces(
 			vertices->at(particle->i),
 			contact,
