@@ -9,6 +9,16 @@ Scene::Scene(vector<Entity*> entities, Entity* debug, DebugModelProvider provide
 	this->provider = provider;
 }
 
+void Scene::renderDebug(vector<Entity>* entities, Camera* camera) {
+	for (Entity collision : *entities) {
+		collision.update();
+		glPolygonMode(GL_FRONT, GL_LINE);
+		glPolygonMode(GL_BACK, GL_LINE);
+		this->renderer->render(&collision, this->camera, Configuration::getInstance()->getLight());
+		this->renderer->resetRenderMode();
+	}
+}
+
 void Scene::render() {
 	this->renderer->clear();
     this->renderer->prepare();
@@ -19,21 +29,10 @@ void Scene::render() {
 	for (Entity* entity : this->entities) {
 		entity->update();
         this->renderer->render(entity, this->camera, Configuration::getInstance()->getLight());
-		for (Entity collision : *entity->getBroadPhaseCollisionEntities()) {
-			collision.update();
-			glPolygonMode(GL_FRONT, GL_LINE);
-			glPolygonMode(GL_BACK, GL_LINE);
-			this->renderer->render(&collision, this->camera, Configuration::getInstance()->getLight());
-			glPolygonMode(GL_FRONT, GL_FILL);
-			glPolygonMode(GL_BACK, GL_FILL);
-		}
-		for (Entity collision : *entity->getNarrowPhaseCollisionEntities()) {
-			collision.update();
-			glPolygonMode(GL_FRONT, GL_LINE);
-			glPolygonMode(GL_BACK, GL_LINE);
-			this->renderer->render(&collision, this->camera, Configuration::getInstance()->getLight());
-			glPolygonMode(GL_FRONT, GL_FILL);
-			glPolygonMode(GL_BACK, GL_FILL);
+
+		if (Configuration::getInstance()->getDebug()->showCollision) {
+			this->renderDebug(entity->getBroadPhaseCollisionEntities(), this->camera);
+			this->renderDebug(entity->getNarrowPhaseCollisionEntities(), this->camera);
 		}
 	}
 }

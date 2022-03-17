@@ -36,7 +36,7 @@ WindowEngine::WindowEngine() {
 	glfwSetCursorPosCallback(this->window, onMouseMove);
 	glfwSetWindowSizeCallback(this->window, onWindowSizeChange);
 	glfwMakeContextCurrent(window);
-	// glfwSwapInterval(0);
+	glfwSwapInterval(0);
 	gl3wInit();
 	gui = new GuiRenderer(this->window);
 	command = CommandService::getInstance();

@@ -39,6 +39,7 @@ private:
 	// TODO: todas esses métodos poderiam ser classes que seguem o single responsability principe
 	vec3 calculateForces(vec3 x, vec3 y, float rest, float stiffness);
 	vector<Entity*> getCollideablesFromBroadPhase(vector<Entity*>);
+	void penalize(std::map<Collideable*, Entity*>::iterator x, std::map<Collideable*, Entity*>::iterator y, float restriction, float timestep, Debug* debug);
 	void collideAtNarrowPhase(vector<Entity*>, float);
 
 	static map<Collideable*, Entity*> createCollisionPool(vector<Entity*>, ColliderProvider);

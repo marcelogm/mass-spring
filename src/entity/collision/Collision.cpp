@@ -41,15 +41,15 @@ float CollideableBoundingBox::isIntersectedBy(CollideableBoundingBox* box) {
 }
 
 
-CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, float radius) {
+CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, RadiusProvider radiusProvider) {
 	this->provider = provider;
-	this->radius = radius;
+	this->radiusProvider = radiusProvider;
 	this->affectedParticles = {};
 }
 
-CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, float radius, AffectedParticlesProvider affectedProvider) {
+CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, RadiusProvider radiusProvider, AffectedParticlesProvider affectedProvider) {
 	this->provider = provider;
-	this->radius = radius;
+	this->radiusProvider = radiusProvider;
 	this->affectedParticles = affectedProvider();
 }
 
@@ -59,6 +59,7 @@ CollideableType CollideableBoudingSphere::getType() {
 
 void CollideableBoudingSphere::update() {
 	this->position = provider();
+	this->radius = radiusProvider();
 }
 
 vec3 CollideableBoudingSphere::getPosition() {

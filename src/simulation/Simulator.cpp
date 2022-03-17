@@ -1,5 +1,4 @@
 #include "simulation.hpp"
-#include "simulation.hpp"
 
 bool Simulator::definitelyLessThan(float a, float b, float epsilon) {
 	return (b - a) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
@@ -57,43 +56,51 @@ vector<Entity*> Simulator::getCollideablesFromBroadPhase(vector<Entity*> entitie
 	return broad;
 }
 
+void Simulator::penalize(std::map<Collideable*, Entity*>::iterator x, std::map<Collideable*, Entity*>::iterator y,
+	float restriction, float timestep, Debug* debug) {
+
+	debug->narrowPhase = true;
+	auto allParticlesAffected = x->first->affectedParticles;
+	for (size_t i = 0; allParticlesAffected != nullptr && i < allParticlesAffected->size(); i++) {
+
+		auto particle = allParticlesAffected->at(i);
+		auto point = dynamic_cast<CollideablePoint*>(x->first);
+		auto sphere = dynamic_cast<CollideableBoudingSphere*>(y->first);
+		auto vertices = x->second->getObject()->getVertices();
+
+		auto P = sphere->getPosition();
+		auto D = point->getPosition();
+		auto direction = glm::normalize(D - P) * (sphere->getRadius() - restriction);
+		auto contact = P + direction;
+
+		particle->velocity = vec3();
+		vec3 force = this->calculateForces(
+			vertices->at(particle->i),
+			contact,
+			0.0f,
+			Configuration::getInstance()->getDebug()->collisionStiffness
+		);
+		particle->force += force;
+		vertices->at(particle->i) += integrate(particle, timestep, 1.f);
+	}
+}
+
 void Simulator::collideAtNarrowPhase(vector<Entity*> entities, float timestep) {
 	auto debug = Configuration::getInstance()->getDebug();
+	std::map<Collideable*, Entity*>::iterator x;
+	std::map<Collideable*, Entity*>::iterator y;
 	debug->narrowPhase = false;
 
 	auto pool = this->createCollisionPool(entities, [](Entity* entity) -> vector<Collideable*>*{
 		return entity->getNarrowPhaseCollideables();
 	});;
 
-	for (std::pair<Collideable*, Entity*> x : pool) {
-		for (std::pair<Collideable*, Entity*> y : pool) {
+	for (x = pool.begin(); x != pool.end(); x++) {
+		for (y = x; y != pool.end(); y++) {
 			if (x != y) {
-				auto restriction = CollisionChecker().isColliding(x.first, y.first);
+				auto restriction = CollisionChecker().isColliding(x->first, y->first);
 				if (definitelyLessThan(restriction, 0.0f, 0.001f)) {
-					debug->narrowPhase = true;
-					auto allParticlesAffected = x.first->affectedParticles;
-					for (size_t i = 0; allParticlesAffected != nullptr && i < allParticlesAffected->size(); i++) {
-						// Só foi implementada a colisão entre pontos e esferas
-						auto particle = allParticlesAffected->at(i);
-						auto point = dynamic_cast<CollideablePoint*>(x.first);
-						auto sphere = dynamic_cast<CollideableBoudingSphere*>(y.first);
-						auto vertices = x.second->getObject()->getVertices();
-					
-						auto A = sphere->getPosition();
-						auto B = point->getPosition();
-						auto N = glm::normalize(B - A);
-						auto projection = sphere->getRadius() * N;
-						auto contact = (sphere->getPosition() + projection) - abs(sphere->getRadius() - restriction);
-
-						vec3 force = this->calculateForces(
-							vertices->at(particle->i),
-							contact,
-							0.0f,
-							0.002f
-						);
-						particle->force += force;
-						vertices->at(particle->i) += integrate(particle, timestep, 0.9f);
-					}
+					this->penalize(x, y, restriction, timestep, debug);
 				};
 			}
 		}
@@ -101,7 +108,7 @@ void Simulator::collideAtNarrowPhase(vector<Entity*> entities, float timestep) {
 }
 
 void Simulator::update(Scene* scene) {
-	const auto timestep = Configuration::getInstance()->getSimulationParams()->step;
+	const auto timestep = Configuration::getInstance()->getSimulationParams()->step / 10000000;
 	auto entities = scene->getEntities();
 
 	for (auto entity : entities) {
@@ -110,8 +117,10 @@ void Simulator::update(Scene* scene) {
 		}
 	}
 
-	auto broadPhase = this->getCollideablesFromBroadPhase(entities);
-	this->collideAtNarrowPhase(broadPhase, timestep);
+	if (Configuration::getInstance()->getSimulationParams()->collision) {
+		auto broadPhase = this->getCollideablesFromBroadPhase(entities);
+		this->collideAtNarrowPhase(broadPhase, timestep);
+	}
 }
 
 void Simulator::updateEntity(Entity* entity, const float timestep, const float damping) {

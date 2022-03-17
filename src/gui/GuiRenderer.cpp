@@ -21,15 +21,22 @@ void GuiRenderer::render() {
 	ImGui::SliderFloat("Gravity Modifier", &config->getSimulationParams()->gravityModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
 	ImGui::SliderFloat3("Wind Direction", value_ptr(config->getSimulationParams()->windDirection), -1, 1, "%.0f", ImGuiSliderFlags_None);
 	ImGui::SliderFloat("Wind Modifier", &config->getSimulationParams()->windModifier, 0.00001f, 100.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
-	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.000000001f, 0.0001f, "%.10f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Time step", &config->getSimulationParams()->step, 0.001f, 0.1f, "%.5f", ImGuiSelectableFlags_None);
 	ImGui::SliderFloat("Stiffness", &config->getSimulationParams()->stiffness, 0.000001, 1.0, "%.8f", ImGuiSelectableFlags_None);
+	
+	ImGui::SliderFloat("Sphere Modifier", &config->getDebug()->radiusModifier, 0.001f, 5.0f, "%.3f", ImGuiSelectableFlags_None);
+	ImGui::SliderFloat("Collission Stiffness", &config->getDebug()->collisionStiffness, 0.000001, 1.00000, "%.8f", ImGuiSelectableFlags_None);
 
 	ImGui::Text("Broad Phase: %d", config->getDebug()->broadPhase);
 	ImGui::Text("Narrow Phase: %d", config->getDebug()->narrowPhase);
-	ImGui::SliderFloat("Sphere position X", &config->getDebug()->debugPosition.x, -2, 2, "%.8f", ImGuiSliderFlags_None);
-	ImGui::SliderFloat("Sphere position Y", &config->getDebug()->debugPosition.y, -2, 2, "%.8f", ImGuiSliderFlags_None);
-	ImGui::SliderFloat("Sphere position Z", &config->getDebug()->debugPosition.z, -2, 2, "%.8f", ImGuiSliderFlags_None);
+
+	ImGui::SliderFloat("Sphere position X", &config->getDebug()->debugPosition.x, -2, 8, "%.8f", ImGuiSliderFlags_None);
+	ImGui::SliderFloat("Sphere position Y", &config->getDebug()->debugPosition.y, -2, 8, "%.8f", ImGuiSliderFlags_None);
+	ImGui::SliderFloat("Sphere position Z", &config->getDebug()->debugPosition.z, -2, 8, "%.8f", ImGuiSliderFlags_None);
 	
+	ImGui::Checkbox("Collision", &config->getSimulationParams()->collision);
+	ImGui::Checkbox("Debug Collision", &config->getDebug()->showCollision);
+
 	ImGui::End();
 
 	ImGui::Begin("Render mode", NULL, ImGuiWindowFlags_AlwaysAutoResize);

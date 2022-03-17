@@ -1,5 +1,4 @@
 #include "entity.hpp"
-#include "entity.hpp"
 
 vector<ShaderInfo> DEFAULT_SHADER = {
 	{ GL_VERTEX_SHADER, "resources/shaders/shader.vert" },
@@ -88,40 +87,11 @@ Entity::Entity(Object object, vector<ShaderInfo> shaders, vector<int> fixed, vec
 		this->springs->at((i * 3) + 2) = { i3, i1, glm::length(v3 - v1) };
 	}
 
-	// Setup collision - DRY IT
+	// Debug collision boxes
 	this->broadPhaseCollideables = broadCollideableProvider(this);
-	this->broadPhaseCollisionEntities = new vector<Entity>();
-	for (size_t i = 0; i < this->broadPhaseCollideables->size(); i++) {
-		this->broadPhaseCollideables->at(i)->update();
-		if (this->broadPhaseCollideables->at(i)->getType() == CollideableType::BOX) {
-			auto box = dynamic_cast<CollideableBoundingBox*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(box->getMin(), box->getMax()));
-		}
-		else if (this->broadPhaseCollideables->at(i)->getType() == CollideableType::SPHERE) {
-			auto sphere = dynamic_cast<CollideableBoudingSphere*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition(), sphere->getRadius()));
-		}
-		else {
-			auto sphere = dynamic_cast<CollideablePoint*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition()));
-		}
-	}
+	this->broadPhaseCollisionEntities = createCollisionEntities(this->broadPhaseCollideables);
 	this->narrowPhaseCollideables = narrowCollideableProvider(this);
-	this->narrowPhaseCollisionEntities = new vector<Entity>();
-	for (size_t i = 0; i < this->narrowPhaseCollideables->size(); i++) {
-		this->narrowPhaseCollideables->at(i)->update();
-		if (this->narrowPhaseCollideables->at(i)->getType() == CollideableType::BOX) {
-			auto box = dynamic_cast<CollideableBoundingBox*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(box->getMin(), box->getMax()));
-		}
-		else if (this->narrowPhaseCollideables->at(i)->getType() == CollideableType::SPHERE) {
-			auto sphere = dynamic_cast<CollideableBoudingSphere*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition(), sphere->getRadius()));
-		} else {
-			auto sphere = dynamic_cast<CollideablePoint*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition()));
-		}
-	}
+	this->narrowPhaseCollisionEntities = createCollisionEntities(this->narrowPhaseCollideables);
 
 	glGenVertexArrays(1, &this->info.VAO);
 	glGenBuffers(1, &this->info.positionVBO);
@@ -204,37 +174,12 @@ SimulationProperties Entity::getSimulationProperties() {
 }
 
 vector<Entity>* Entity::getBroadPhaseCollisionEntities() {
-	for (size_t i = 0; i < this->broadPhaseCollideables->size(); i++) {
-		this->broadPhaseCollideables->at(i)->update();
-		if (this->broadPhaseCollideables->at(i)->getType() == CollideableType::BOX) {
-			auto box = dynamic_cast<CollideableBoundingBox*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVertices(box->getMin(), box->getMax()));
-		} else if (this->broadPhaseCollideables->at(i)->getType() == CollideableType::SPHERE) {
-			auto sphere = dynamic_cast<CollideableBoudingSphere*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(sphere->getPosition(), sphere->getRadius()));
-		} else {
-			auto sphere = dynamic_cast<CollideablePoint*>(this->broadPhaseCollideables->at(i));
-			this->broadPhaseCollisionEntities->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition()));
-		}
-	}
+	this->updateCollisionEntities(this->broadPhaseCollideables, this->broadPhaseCollisionEntities);
 	return this->broadPhaseCollisionEntities;
 }
 
 vector<Entity>* Entity::getNarrowPhaseCollisionEntities() {
-	for (size_t i = 0; i < this->narrowPhaseCollideables->size(); i++) {
-		this->narrowPhaseCollideables->at(i)->update();
-		if (this->narrowPhaseCollideables->at(i)->getType() == CollideableType::BOX) {
-			auto box = dynamic_cast<CollideableBoundingBox*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVertices(box->getMin(), box->getMax()));
-		}
-		else if (this->narrowPhaseCollideables->at(i)->getType() == CollideableType::SPHERE) {
-			auto sphere = dynamic_cast<CollideableBoudingSphere*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(sphere->getPosition(), sphere->getRadius()));
-		} else {
-			auto point = dynamic_cast<CollideablePoint*>(this->narrowPhaseCollideables->at(i));
-			this->narrowPhaseCollisionEntities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(point->getPosition(), 0.01f));
-		}
-	}
+	this->updateCollisionEntities(this->narrowPhaseCollideables, this->narrowPhaseCollisionEntities);
 	return this->narrowPhaseCollisionEntities;
 }
 
@@ -244,4 +189,44 @@ vector<Collideable*>* Entity::getBroadPhaseCollideables() {
 
 vector<Collideable*>* Entity::getNarrowPhaseCollideables() {
 	return narrowPhaseCollideables;
+}
+
+// DRY IT
+vector<Entity>* Entity::createCollisionEntities(vector<Collideable*>* collisions) {
+	auto created = new vector<Entity>();
+	for (size_t i = 0; i < collisions->size(); i++) {
+		collisions->at(i)->update();
+		if (collisions->at(i)->getType() == CollideableType::BOX) {
+			auto box = dynamic_cast<CollideableBoundingBox*>(collisions->at(i));
+			created->push_back(DebugEntityUtils::getDebugBoxEntityWith(box->getMin(), box->getMax()));
+		}
+		else if (collisions->at(i)->getType() == CollideableType::SPHERE) {
+			auto sphere = dynamic_cast<CollideableBoudingSphere*>(collisions->at(i));
+			created->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition(), sphere->getRadius()));
+		}
+		else {
+			auto sphere = dynamic_cast<CollideablePoint*>(collisions->at(i));
+			created->push_back(DebugEntityUtils::getDebugBoxEntityWith(sphere->getPosition()));
+		}
+	}
+	return created;
+}
+
+// DRY IT
+void Entity::updateCollisionEntities(vector<Collideable*>* collideables, vector<Entity>* entities) {
+	for (size_t i = 0; i < collideables->size(); i++) {
+		collideables->at(i)->update();
+		if (collideables->at(i)->getType() == CollideableType::BOX) {
+			auto box = dynamic_cast<CollideableBoundingBox*>(collideables->at(i));
+			entities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVertices(box->getMin(), box->getMax()));
+		}
+		else if (collideables->at(i)->getType() == CollideableType::SPHERE) {
+			auto sphere = dynamic_cast<CollideableBoudingSphere*>(collideables->at(i));
+			entities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(sphere->getPosition(), sphere->getRadius()));
+		}
+		else {
+			auto point = dynamic_cast<CollideablePoint*>(collideables->at(i));
+			entities->at(i).getObject()->setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(point->getPosition(), 0.01f));
+		}
+	}
 }

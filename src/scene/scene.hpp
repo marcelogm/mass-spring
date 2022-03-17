@@ -16,6 +16,7 @@ private:
 	float diffuseLightStrength;
 public:
 	void clear();
+	void resetRenderMode();
 	void prepare();
 	void render(Entity*, Camera*, LightConfiguration*);
 };
@@ -30,6 +31,7 @@ private:
 	DebugModelProvider provider;
 public:
 	Scene(vector<Entity*> entities, Entity* debug, DebugModelProvider provider, Camera* camera);
+	void renderDebug(vector<Entity>* entities, Camera* camera);
 	void render();
 	Camera* getCamera();
 	vector<Entity*> getEntities();

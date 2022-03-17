@@ -50,12 +50,14 @@ public:
 
 class CollideableBoudingSphere: public Collideable {
 private:
+	using RadiusProvider = std::function<float()>;
 	PositionProvider provider;
+	RadiusProvider radiusProvider;
 	vec3 position;
 	float radius;
 public:
-	CollideableBoudingSphere(PositionProvider provider, float radius);
-	CollideableBoudingSphere(PositionProvider provider, float radius, AffectedParticlesProvider affected);
+	CollideableBoudingSphere(PositionProvider provider, RadiusProvider radiusProvider);
+	CollideableBoudingSphere(PositionProvider provider, RadiusProvider radiusProvider, AffectedParticlesProvider affected);
 	CollideableType getType() override;
 	void update();
 	vec3 getPosition();

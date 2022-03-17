@@ -15,6 +15,7 @@
 #include "../camera/camera.hpp"
 #include <functional>
 #include "collision/collision.hpp"
+#include "../configuration/config.hpp"
 
 using std::string;
 using glm::vec3;
@@ -120,6 +121,7 @@ public:
 	vector<Collideable*>* getBroadPhaseCollideables();
 	vector<Entity>* getNarrowPhaseCollisionEntities();
 	vector<Collideable*>* getNarrowPhaseCollideables();
+
 private:
 	Object original;
 	Object actual;
@@ -137,6 +139,9 @@ private:
 	vector<Entity>* broadPhaseCollisionEntities;
 	vector<Collideable*>* narrowPhaseCollideables;
 	vector<Entity>* narrowPhaseCollisionEntities;
+	vector<Entity>* createCollisionEntities(vector<Collideable*>*);
+	void updateCollisionEntities(vector<Collideable*>*, vector<Entity>*);
+
 };
 
 class DebugEntityUtils {

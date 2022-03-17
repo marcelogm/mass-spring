@@ -6,7 +6,10 @@ using glm::vec4;
 typedef struct {
 	bool broadPhase;
 	bool narrowPhase;
+	bool showCollision;
 	glm::vec3 debugPosition;
+	float radiusModifier;
+	float collisionStiffness;
 } Debug;
 
 typedef struct {
@@ -40,6 +43,7 @@ typedef struct {
 	float step;
 	int substeps;
 	bool llt;
+	bool collision;
 } SimulationParams;
 
 class Configuration {
