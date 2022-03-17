@@ -3,6 +3,13 @@
 CollideableBoundingBox::CollideableBoundingBox(PositionProvider minProvider, PositionProvider maxProvider) {
 	this->minProvider = minProvider;
 	this->maxProvider = maxProvider;
+	this->affectedParticles = {};
+}
+
+CollideableBoundingBox::CollideableBoundingBox(PositionProvider minProvider, PositionProvider maxProvider, AffectedParticlesProvider affectedProvider) {
+	this->minProvider = minProvider;
+	this->maxProvider = maxProvider;
+	this->affectedParticles = affectedProvider();
 }
 
 CollideableType CollideableBoundingBox::getType() {
@@ -37,6 +44,13 @@ float CollideableBoundingBox::isIntersectedBy(CollideableBoundingBox* box) {
 CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, float radius) {
 	this->provider = provider;
 	this->radius = radius;
+	this->affectedParticles = {};
+}
+
+CollideableBoudingSphere::CollideableBoudingSphere(PositionProvider provider, float radius, AffectedParticlesProvider affectedProvider) {
+	this->provider = provider;
+	this->radius = radius;
+	this->affectedParticles = affectedProvider();
 }
 
 CollideableType CollideableBoudingSphere::getType() {
@@ -63,7 +77,7 @@ float CollideableBoudingSphere::isIntersectedBy(CollideableBoudingSphere* sphere
 		(it.y - other.y) * (it.y - other.y) +
 		(it.z - other.z) * (it.z - other.z)
 	);
-	// is it right?
+	// posso retornar essa subtração
 	return distance < (this->getRadius() + sphere->getRadius());
 }
 
@@ -84,12 +98,18 @@ float CollideableBoudingSphere::isIntersectedBy(CollideableBoundingBox* box) {
 		(closest.y - sphere.y) * (closest.y - sphere.y) +
 		(closest.z - sphere.z) * (closest.z - sphere.z)
 	);
-	// is it right?
+	// posso retornar essa subtração
 	return distance < this->getRadius();
 }
 
 CollideablePoint::CollideablePoint(PositionProvider provider) {
 	this->provider = provider;
+	this->affectedParticles = {};
+}
+
+CollideablePoint::CollideablePoint(PositionProvider provider, AffectedParticlesProvider affectedProvider) {
+	this->provider = provider;
+	this->affectedParticles = affectedProvider();
 }
 
 CollideableType CollideablePoint::getType() {
@@ -112,8 +132,7 @@ float CollideablePoint::isInside(CollideableBoudingSphere* sphere) {
 		(point.y - other.y) * (point.y - other.y) +
 		(point.z - other.z) * (point.z - other.z)
 	);
-	// is it right?
-	return distance < sphere->getRadius();
+	return distance - sphere->getRadius();
 }
 
 float CollideablePoint::isInside(CollideableBoundingBox* box) {
@@ -130,23 +149,48 @@ float CollideablePoint::isInside(CollideableBoundingBox* box) {
 }
 
 float CollisionChecker::isColliding(Collideable* it, Collideable* other) {
-	// Eu deveria conseguir fazer isso com uma interface
+	// Isso aqui está horrível, poderia ter feito isso com interface
+	// ou qualquer outra coisa, mas faltou tempo
+
 	if (it->getType() == CollideableType::SPHERE) {
 		auto sphere = dynamic_cast<CollideableBoudingSphere*>(it);
 		if (other->getType() == CollideableType::SPHERE) {
 			return sphere->isIntersectedBy(dynamic_cast<CollideableBoudingSphere*>(other));
-		} else {
-			return sphere->isIntersectedBy(dynamic_cast<CollideableBoundingBox*>(other));
 		}
-	} else if (it->getType() == CollideableType::BOX) {
-		auto box = dynamic_cast<CollideableBoundingBox*>(it);
-		return box->isIntersectedBy(dynamic_cast<CollideableBoundingBox*>(other));
-	} else {
-		auto point = dynamic_cast<CollideablePoint*>(it);
-		if (other->getType() == CollideableType::SPHERE) {
-			return point->isInside(dynamic_cast<CollideableBoudingSphere*>(other));
+		else if (other->getType() == CollideableType::BOX) {
+			return sphere->isIntersectedBy(dynamic_cast<CollideableBoundingBox*>(other));
 		} else {
-			return point->isInside(dynamic_cast<CollideableBoundingBox*>(other));
+			auto point = dynamic_cast<CollideablePoint*>(other);
+			return point->isInside(sphere);
 		}
 	}
+
+	if (it->getType() == CollideableType::BOX) {
+		auto box = dynamic_cast<CollideableBoundingBox*>(it);
+		if (other->getType() == CollideableType::BOX) {
+			return box->isIntersectedBy(dynamic_cast<CollideableBoundingBox*>(other));
+		}
+		else if (other->getType() == CollideableType::SPHERE) {
+			auto sphere = dynamic_cast<CollideableBoudingSphere*>(other);
+			return sphere->isIntersectedBy(dynamic_cast<CollideableBoundingBox*>(box));
+		}
+		else {
+			auto point = dynamic_cast<CollideablePoint*>(it);
+			return point->isInside(box);
+		}
+	}
+
+	if (it->getType() == CollideableType::POINT) {
+		auto point = dynamic_cast<CollideablePoint*>(it);
+		if (other->getType() == CollideableType::BOX) {
+			auto box = dynamic_cast<CollideableBoundingBox*>(it);
+			return point->isInside(dynamic_cast<CollideableBoundingBox*>(other));
+		}
+		else if (other->getType() == CollideableType::SPHERE) {
+			auto sphere = dynamic_cast<CollideableBoudingSphere*>(other);
+			return point->isInside(dynamic_cast<CollideableBoudingSphere*>(sphere));
+		}
+	}
+
+	return 0.0f;
 }

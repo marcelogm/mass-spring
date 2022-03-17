@@ -83,19 +83,6 @@ typedef struct {
 	GLuint shader;
 } OpenGLObjectInformation;
 
-typedef struct Particle {
-	size_t i;
-	vec3 velocity;
-	vec3 force;
-	float mass;
-};
-
-typedef struct Spring {
-	size_t i;
-	size_t j;
-	float restLength;
-};
-
 typedef struct SimulationProperties {
 	bool gravity;
 	bool wind;
@@ -109,11 +96,11 @@ typedef struct SimulationProperties {
 class Entity {
 public:
 	using SimulationPorpertiesProvider = std::function<SimulationProperties()>;
-	using CollideableProvider = std::function<vector<Collideable*>*(Object*)>;
+	using CollideableProvider = std::function<vector<Collideable*>*(Entity*)>;
 
 	// TODO: oh god, what a mess, please refactor to a builder 
 	Entity(Object, vector<ShaderInfo>, vector<int>, vec4, mat4,
-		SimulationPorpertiesProvider, CollideableProvider);
+		SimulationPorpertiesProvider, CollideableProvider, CollideableProvider);
 	Entity(Object, vec4, mat4);
 	Entity(Object, vec4);
 
@@ -128,8 +115,11 @@ public:
 	vector<vec3>* getRenderedVertices();
 	vector<vec3>* getRenderedNormals();
 	SimulationProperties getSimulationProperties();
-	vector<Entity>* getCollisionEntities();
-	vector<Collideable*>* getCollideables();
+
+	vector<Entity>* getBroadPhaseCollisionEntities();
+	vector<Collideable*>* getBroadPhaseCollideables();
+	vector<Entity>* getNarrowPhaseCollisionEntities();
+	vector<Collideable*>* getNarrowPhaseCollideables();
 private:
 	Object original;
 	Object actual;
@@ -138,17 +128,22 @@ private:
 	vector<Spring>* springs;
 	vector<vec3>* vertexBuffer;
 	vector<vec3>* normalBuffer;
-	vector<Collideable*>* collideables;
-	vector<Entity>* collisionDebug;
 	vec4 color;
 	OpenGLObjectInformation info;
 	SimulationPorpertiesProvider propertiesProvider;
+
+
+	vector<Collideable*>* broadPhaseCollideables;
+	vector<Entity>* broadPhaseCollisionEntities;
+	vector<Collideable*>* narrowPhaseCollideables;
+	vector<Entity>* narrowPhaseCollisionEntities;
 };
 
 class DebugEntityUtils {
 public:
 	static Entity getDebugBoxEntityWith(vec3 min, vec3 max);
 	static Entity getDebugBoxEntityWith(vec3 pos, float radius);
+	static Entity getDebugBoxEntityWith(vec3 pos);
 	static vector<vec3> getDebugBoxVerticesFromSphere(vec3 pos, float radius);
 	static vector<vec3> getDebugBoxVertices(vec3 min, vec3 max);
 };

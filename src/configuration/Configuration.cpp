@@ -5,7 +5,7 @@ Configuration::Configuration() {
 	this->light = { vec4(5.0f, 10.0f, 2.0f, 1.0f), 0.5f, 0.1f };
 	this->params = { 1.00f, 2.00f, glm::vec3(-1.f, 0.f, 0.f), 5, 0.5, 0.1, 0.0001f, 5, false };
 	this->openGL = { RenderMode::TRIANGLES };
-	this->debug = { false, glm::vec3(0.0f, 0.0f, 0.0f) };
+	this->debug = { false, false, glm::vec3(2.0f, 0.0f, 0.0f) };
 };
 
 Configuration* Configuration::getInstance() {

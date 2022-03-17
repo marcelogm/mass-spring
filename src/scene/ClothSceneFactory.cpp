@@ -6,6 +6,7 @@ Scene* ClothSceneFactory::build() {
 	auto f2 = vec3(-0.8f, 0.2f, -1.2f);
 	Configuration::getInstance()->getSimulationParams()->stiffness = 0.2f;
 	Configuration::getInstance()->getSimulationParams()->step = 0.00001;
+	Configuration::getInstance()->getSimulationParams()->step = 0.00001;
 
 	Entity* b1 = getSphere(f1, 0.05);
 	Entity* b2 = getSphere(f2, 0.05);
@@ -25,9 +26,34 @@ Scene* ClothSceneFactory::build() {
 				false
 			};
 		},
-		MIN_MAX_BOUDING_BOX
+		MIN_MAX_BOUDING_BOX,
+		[](Entity* actual) -> vector<Collideable*>* {
+			auto collideables = new vector<Collideable*>();
+			for (int i = 0; i < actual->getObject()->getVertices()->size(); i++) {
+				collideables->push_back(new CollideablePoint(
+					[actual, i]() -> vec3 {
+						return actual->getObject()->getVertices()->at(i);
+					},
+					[actual, i]() -> vector<Particle*>* {
+						auto v = new vector<Particle*>();
+						v->push_back(&actual->getParticles()->at(i));
+						return v;
+					}
+				));
+			}
+			return collideables;
+		}
 	);
-	float radius = 0.1f;
+	float radius = 0.5f;
+	auto sphereCollision = [radius](Entity* actual) -> vector<Collideable*>*{
+		auto collideables = new vector<Collideable*>();
+		collideables->push_back(new CollideableBoudingSphere(
+			[radius]() -> vec3 {
+				return Configuration::getInstance()->getDebug()->debugPosition;
+			}, radius + 0.2f)
+		);
+		return collideables;
+	};
 	Entity* sphere = new Entity(
 		provider.get("resources/sphere.obj"),
 		DEFAULT_SHADER,
@@ -44,15 +70,8 @@ Scene* ClothSceneFactory::build() {
 				true
 			};
 		},
-		[radius](Object* actual) -> vector<Collideable*>* {
-			auto collideables = new vector<Collideable*>();
-			collideables->push_back(new CollideableBoudingSphere(
-				[radius]() -> vec3 {
-					return Configuration::getInstance()->getDebug()->debugPosition;
-				}, radius)
-			);
-			return collideables;
-		}
+		sphereCollision,
+		sphereCollision
 	);
 	Entity* floor = new Entity(
 		provider.get("resources/plane.obj"),

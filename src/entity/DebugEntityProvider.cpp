@@ -1,5 +1,6 @@
 #include "entity.hpp"
 
+// Feio, eu sei, mas é só pra debug
 Entity DebugEntityUtils::getDebugBoxEntityWith(vec3 min, vec3 max) {
 	ObjectProvider provider = ObjectProvider();
 	auto obj = provider.get("resources/box.obj");
@@ -13,6 +14,14 @@ Entity DebugEntityUtils::getDebugBoxEntityWith(vec3 position, float radius) {
 	obj.setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(position, radius));
 	return Entity(obj, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
+
+Entity DebugEntityUtils::getDebugBoxEntityWith(vec3 position) {
+	ObjectProvider provider = ObjectProvider();
+	auto obj = provider.get("resources/box.obj");
+	obj.setVertices(DebugEntityUtils::getDebugBoxVerticesFromSphere(position, 0.1f));
+	return Entity(obj, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
 
 vector<vec3> DebugEntityUtils::getDebugBoxVerticesFromSphere(vec3 position, float radius) {
 	return DebugEntityUtils::getDebugBoxVertices(

@@ -5,6 +5,7 @@ using glm::vec4;
 
 typedef struct {
 	bool broadPhase;
+	bool narrowPhase;
 	glm::vec3 debugPosition;
 } Debug;
 
